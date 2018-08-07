@@ -1,15 +1,36 @@
-#!/usr/bin/zsh
-cd /home/ubuntu/java-ims
-git fetch
-local=`git rev-parse imjinbro`
-origin=`git rev-parse origin/imjinbro`
+#! /bin/zsh
+JAVA="$JAVA_HOME/java"
+JAVA_OPTS="$JAVA -Djava.security.egd=file:/dev/./urandom"
 
-if [ ! $local = $origin ]; then
-    rm -rf ./build 
-    git merge origin/imjinbro
-    ./gradlew build
-	        
-    target_pid=`pgrep -f java-qna` 
-    kill -9 $target_pid
-    java -jar ./build/libs/java-ims-1.0.0.jar &
+REPO=$HOME/java-ims
+TARGET=$REPO/build/libs
+
+cd $REPO
+git fetch origin master
+
+origin=$(git rev-parse imjinbro)
+remote=$(git rev-parse origin/imjinbro)
+
+if [[ $origin == $remote ]]; then
+   exit 0
 fi
+
+git merge origin imjinbro
+
+CURRENT_PID=$(pgrep -f java-ims)
+
+if [ -n $CURRENT_PID ]; then 
+    kill -9 $CURRENT_PID
+    sleep 5
+fi
+
+#build gradle
+./gradlew build -x test
+
+if [ ! -d $TARGET ]; then
+    exit 1
+fi
+
+cd $TARGET
+java -jar java-ims-*.jar & > /dev/null 2>&1
+
