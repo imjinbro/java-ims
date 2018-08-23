@@ -17,15 +17,15 @@ fi
 
 git merge origin imjinbro
 
+#build gradle
+./gradlew build -x test
+
 CURRENT_PID=$(pgrep -f java-ims)
 
 if [ -n $CURRENT_PID ]; then 
     kill -9 $CURRENT_PID
     sleep 5
 fi
-
-#build gradle
-./gradlew build -x test
 
 if [ ! -d $TARGET ]; then
     exit 1
